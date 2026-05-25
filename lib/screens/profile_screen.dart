@@ -140,11 +140,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               const SizedBox(height: 4),
 
-              if (locationLabel.isNotEmpty)
-                Text(
-                  '📍 $locationLabel',
-                  style: const TextStyle(fontSize: 14, color: Colors.white38),
-                ),
+              Text(
+                locationLabel.isNotEmpty ? '📍 $locationLabel' : 'Completá tu perfil',
+                style: const TextStyle(fontSize: 14, color: Colors.white38),
+              ),
 
               const SizedBox(height: 6),
               Container(

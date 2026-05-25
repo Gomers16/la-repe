@@ -21,11 +21,11 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
   late TextEditingController _nameController;
   late TextEditingController _whatsappController;
   
-  String _selectedCity = 'IbaguÃ©';
+  String _selectedCity = 'Ibagué';
   String _selectedCountry = 'Colombia';
 
-  final List<String> _cities = ['IbaguÃ©', 'BogotÃ¡', 'Cali', 'MedellÃ­n', 'Barranquilla'];
-  final List<String> _countries = ['Colombia', 'Argentina', 'Brasil', 'Uruguay', 'MÃ©xico'];
+  final List<String> _cities = ['Ibagué', 'Bogotá', 'Cali', 'Medellín', 'Barranquilla'];
+  final List<String> _countries = ['Colombia', 'Argentina', 'Brasil', 'Uruguay', 'México'];
 
   bool _isLoading = false;
   double _loadingProgress = 0.0;
@@ -54,7 +54,7 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
       _loadingProgress = 0.0;
     });
 
-    // AnimaciÃ³n de progreso mientras guardamos
+    // Animación de progreso mientras guardamos
     _progressTimer = Timer.periodic(const Duration(milliseconds: 80), (timer) {
       if (!mounted) { timer.cancel(); return; }
       setState(() {
@@ -63,7 +63,7 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
     });
 
     try {
-      // Si hay sesiÃ³n activa (Google OAuth), actualizar el perfil en Supabase
+      // Si hay sesión activa (Google OAuth), actualizar el perfil en Supabase
       final userId = SupabaseService.currentUserId;
       if (userId != null) {
         await SupabaseService.updateUsuario(
@@ -212,7 +212,7 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
                 const SizedBox(height: 12),
                 Center(
                   child: Text(
-                    widget.isGoogle ? 'Â¡Un paso mÃ¡s!' : 'Crea tu cuenta',
+                    widget.isGoogle ? '¡Un paso más!' : 'Crea tu cuenta',
                     style: const TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
@@ -242,7 +242,7 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
                   controller: _nameController,
                   validator: (value) => value == null || value.trim().isEmpty ? 'Ingresa tu nombre' : null,
                   decoration: const InputDecoration(
-                    hintText: 'Ej: Diego GÃ³mez',
+                    hintText: 'Ej: Diego Gómez',
                     prefixIcon: Icon(Icons.person_outline, size: 20),
                   ),
                 ),
@@ -250,7 +250,7 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
 
                 // Country Field (Dropdown)
                 const Text(
-                  'PaÃ­s',
+                  'País',
                   style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white70),
                 ),
                 const SizedBox(height: 8),
@@ -291,8 +291,8 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
                 TextFormField(
                   controller: _whatsappController,
                   validator: (value) {
-                    if (value == null || value.trim().isEmpty) return 'Ingresa tu nÃºmero';
-                    if (!value.startsWith('+') && value.length < 7) return 'Formato invÃ¡lido (Ej: +57 300...)';
+                    if (value == null || value.trim().isEmpty) return 'Ingresa tu número';
+                    if (!value.startsWith('+') && value.length < 7) return 'Formato inválido (Ej: +57 300...)';
                     return null;
                   },
                   keyboardType: TextInputType.phone,

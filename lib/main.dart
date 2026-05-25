@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:la_repe/data/datasources/collection_local_datasource.dart';
 import 'package:la_repe/data/datasources/user_local_datasource.dart';
 import 'package:la_repe/data/repositories/collection_repository.dart';
@@ -12,42 +12,55 @@ import 'package:la_repe/theme/theme.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Supabase primero — necesario antes de cualquier llamada a la DB
-  await SupabaseService.initialize();
+  try {
+    debugPrint('[LaRepe] Iniciando Supabase...');
+    await SupabaseService.initialize();
+    debugPrint('[LaRepe] Supabase OK');
+  } catch (e) {
+    debugPrint('[LaRepe] Error Supabase: $e');
+  }
 
-  // Hive — almacenamiento local offline
-  Hive.init('');
-  await Hive.openBox<dynamic>(CollectionLocalDatasource.boxName);
+  try {
+    debugPrint('[LaRepe] Iniciando Hive...');
+    await Hive.initFlutter();
+    await Hive.openBox<dynamic>(CollectionLocalDatasource.boxName);
+    debugPrint('[LaRepe] Hive OK');
+  } catch (e) {
+    debugPrint('[LaRepe] Error Hive (continuando sin cache): $e');
+  }
 
   final state = AlbumState(
     userRepo: UserRepository(UserLocalDatasource()),
     collectionRepo: CollectionRepository(CollectionLocalDatasource()),
   );
-  await state.initialize();
 
-  // Si hay sesión activa en Supabase pero el estado local está vacío,
-  // restauramos el perfil desde la base de datos remota
-  if (state.currentUser == null) {
-    final supaUser = await SupabaseService.getCurrentUser();
-    if (supaUser != null) {
-      state.loginOrRegister(
-        supaUser.nombre,
-        '',
-        '',
-        supaUser.whatsapp ?? '',
-      );
+  try {
+    debugPrint('[LaRepe] Iniciando AlbumState...');
+    await state.initialize();
+    debugPrint('[LaRepe] AlbumState OK');
+
+    if (state.currentUser == null) {
+      final supaUser = await SupabaseService.getCurrentUser();
+      if (supaUser != null) {
+        state.loginOrRegister(
+          supaUser.nombre,
+          '',
+          '',
+          supaUser.whatsapp ?? '',
+        );
+      }
     }
+  } catch (e) {
+    debugPrint('[LaRepe] Error AlbumState (continuando sin datos guardados): $e');
   }
 
-  // Precarga el mapa numero→ID de figuritas en background para que
-  // collection_screen y swipe_screen puedan sincronizar con Supabase sin
-  // hacer queries extra por cada tap
   SupabaseService.preloadFiguritaIds(1).then((_) {
     debugPrint('[Repe] Cache cargado: ${SupabaseService.cacheSize} figuritas');
   }).catchError((_) {
     debugPrint('[Repe] Cache no disponible (sin sesión o sin internet)');
   });
 
+  debugPrint('[LaRepe] Lanzando app...');
   runApp(
     AlbumStateProvider(
       notifier: state,
@@ -69,4 +82,3 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-
