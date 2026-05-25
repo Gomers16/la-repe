@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 112">
+  <rect width="80" height="112" rx="10" fill="#151D30" stroke="#202C45" stroke-width="2"/>
+  <!-- Área de imagen de la figurita -->
+  <rect x="8" y="8" width="64" height="70" rx="6" fill="#202C45"/>
+  <!-- Pelota de fútbol simplificada -->
+  <circle cx="40" cy="43" r="20" fill="#2D3F5C" stroke="#334155" stroke-width="1.5"/>
+  <circle cx="40" cy="43" r="7" fill="#3D536A"/>
+  <!-- Líneas de nombre y número -->
+  <rect x="12" y="87" width="56" height="8" rx="4" fill="#202C45"/>
+  <rect x="12" y="101" width="36" height="6" rx="3" fill="#202C45"/>
+</svg>

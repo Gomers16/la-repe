@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <rect width="100" height="100" rx="18" fill="#151D30"/>
+  <!-- Flecha derecha (intercambio) -->
+  <path d="M12 25 L65 25 L65 17 L88 35 L65 53 L65 45 L12 45 Z" fill="#F59E0B"/>
+  <!-- Flecha izquierda (intercambio), semi-transparente -->
+  <path d="M88 55 L35 55 L35 47 L12 65 L35 83 L35 75 L88 75 Z" fill="#F59E0B" opacity="0.5"/>
+</svg>

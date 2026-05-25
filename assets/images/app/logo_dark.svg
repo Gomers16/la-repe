@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Variante sobre fondo oscuro: sin rectángulo de fondo -->
+  <path d="M12 25 L65 25 L65 17 L88 35 L65 53 L65 45 L12 45 Z" fill="#F59E0B"/>
+  <path d="M88 55 L35 55 L35 47 L12 65 L35 83 L35 75 L88 75 Z" fill="#F59E0B" opacity="0.5"/>
+</svg>
