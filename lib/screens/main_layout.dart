@@ -24,6 +24,9 @@ class MainLayoutState extends State<MainLayout> with WidgetsBindingObserver {
   int _matchCount  = 0;
   int _unreadCount = 0;
 
+  // Public key so HomeScreen can compute per-tab rects for spotlight
+  final GlobalKey bottomNavKey = GlobalKey();
+
   StreamSubscription<List<Match>>?        _matchSub;
   StreamSubscription<List<Notificacion>>? _notifSub;
 
@@ -96,6 +99,7 @@ class MainLayoutState extends State<MainLayout> with WidgetsBindingObserver {
         children: _screens,
       ),
       bottomNavigationBar: BottomNavigationBar(
+        key: bottomNavKey,
         currentIndex: _currentIndex,
         onTap: (index) => setState(() => _currentIndex = index),
         items: [

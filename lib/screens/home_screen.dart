@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:la_repe/screens/main_layout.dart';
-import 'package:la_repe/screens/onboarding_screen.dart';
 import 'package:la_repe/services/supabase_service.dart';
 import 'package:la_repe/services/whatsapp_service.dart';
 import 'package:la_repe/state/album_state.dart';
@@ -8,6 +7,7 @@ import 'package:la_repe/models/models.dart';
 import 'package:la_repe/theme/app_assets.dart';
 import 'package:la_repe/theme/app_logo.dart';
 import 'package:la_repe/theme/theme.dart';
+import 'package:la_repe/widgets/spotlight_overlay.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -22,6 +22,11 @@ class _HomeScreenState extends State<HomeScreen> {
   int? _supaMatchCount;
   String _ciudadActiva = '';
   int _paisSeleccionado = 1; // 1 = Colombia, 9 = México
+
+  // GlobalKeys for spotlight highlighting
+  final _keyFaltantes    = GlobalKey();
+  final _keyRepetidas    = GlobalKey();
+  final _keyIntercambios = GlobalKey();
 
   @override
   void initState() {
@@ -41,17 +46,50 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _showOnboarding() {
-    showDialog(
+    final mainLayout = context.findAncestorStateOfType<MainLayoutState>();
+    showSpotlight(
       context: context,
-      barrierDismissible: false,
-      barrierColor: Colors.black87,
-      builder: (_) => OnboardingScreen(
-        onCompleted: () async {
-          Navigator.pop(context);
-          final prefs = await SharedPreferences.getInstance();
-          await prefs.setBool('onboarding_completado', true);
-        },
-      ),
+      steps: [
+        SpotlightStep(
+          targetKey: _keyFaltantes,
+          title: 'Lo que te falta 🔴',
+          description:
+              'Acá ves cuántas figuritas\nnecesitás para completar tu álbum.',
+        ),
+        SpotlightStep(
+          targetKey: _keyRepetidas,
+          title: 'Tus repetidas 🔄',
+          description:
+              'Las que tenés de más.\nEstas son las que podés intercambiar.',
+        ),
+        SpotlightStep(
+          targetKey: _keyIntercambios,
+          title: 'Intercambios ⚡',
+          description:
+              'La app detecta automáticamente\nquién tiene lo que necesitás.',
+        ),
+        if (mainLayout != null) ...[
+          SpotlightStep(
+            targetKey: mainLayout.bottomNavKey,
+            tabIndex: 2,
+            tabCount: 5,
+            title: 'Clasificación Rápida ⚡',
+            description: 'Deslizá cada figurita:\n← La tengo   La necesito →',
+          ),
+          SpotlightStep(
+            targetKey: mainLayout.bottomNavKey,
+            tabIndex: 1,
+            tabCount: 5,
+            title: 'Tu Colección 📚',
+            description:
+                'Ves todo tu álbum completo.\nFiltrá faltantes y repetidas.',
+          ),
+        ],
+      ],
+      onCompleted: () {
+        SharedPreferences.getInstance()
+            .then((p) => p.setBool('onboarding_completado', true));
+      },
     );
   }
 
@@ -235,6 +273,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   Expanded(
                     child: _StatCard(
+                      key: _keyFaltantes,
                       title: 'Faltantes',
                       count: '$needs',
                       color: AppTheme.completedRed,
@@ -244,6 +283,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(width: 10),
                   Expanded(
                     child: _StatCard(
+                      key: _keyRepetidas,
                       title: 'Repetidas',
                       count: '$repeated',
                       color: AppTheme.primaryGold,
@@ -253,6 +293,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(width: 10),
                   Expanded(
                     child: _StatCard(
+                      key: _keyIntercambios,
                       title: 'Intercambios',
                       count: '$matchesCount',
                       color: AppTheme.neededGreen,
@@ -594,6 +635,7 @@ class _StatCard extends StatelessWidget {
   final VoidCallback onTap;
 
   const _StatCard({
+    super.key,
     required this.title,
     required this.count,
     required this.color,
