@@ -869,6 +869,7 @@ class _CitySelectorSheetState extends State<_CitySelectorSheet> {
     setState(() { _loading = true; _search.clear(); });
     try {
       final data = await SupabaseService.getCiudades(paisId: _selectedPais);
+      debugPrint('[Repe] Selector cargó ${data.length} ciudades para pais_id=$_selectedPais');
       if (mounted) {
         setState(() {
           _ciudades = data;

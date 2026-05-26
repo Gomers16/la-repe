@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:la_repe/config/supabase_config.dart';
 import 'package:la_repe/models/models.dart';
@@ -257,16 +258,19 @@ class SupabaseService {
   }
 
   static Future<List<Map<String, dynamic>>> getCiudades({
-    required int paisId,
+    int? paisId,
   }) async {
     try {
-      final data = await _db
+      final query = _db
           .from('ciudades')
-          .select('id, nombre')
-          .eq('pais_id', paisId)
-          .order('nombre');
-      return (data as List).cast<Map<String, dynamic>>();
+          .select('id, nombre, pais_id');
+      final data = paisId != null
+          ? await query.eq('pais_id', paisId).order('nombre')
+          : await query.order('nombre');
+      debugPrint('[Repe] getCiudades pais_id=$paisId → ${(data as List).length} ciudades');
+      return List<Map<String, dynamic>>.from(data as List);
     } catch (e) {
+      debugPrint('[Repe] getCiudades error: $e');
       throw parseSupabaseError(e);
     }
   }
@@ -520,32 +524,41 @@ class SupabaseService {
     String userId, {
     String? ciudadActiva,
   }) async {
+    // Query base sin filtro de ciudad (siempre funciona)
+    Future<List> baseQuery() => _db
+        .from('matches')
+        .select(
+          'id, porcentaje, estado, usuario_match_id, '
+          'otro_usuario:usuario_match_id(id, nombre, foto, whatsapp)',
+        )
+        .eq('usuario_id', userId)
+        .eq('estado', 'activo')
+        .order('porcentaje', ascending: false)
+        .limit(50);
+
     try {
-      final List data;
+      List data;
       if (ciudadActiva != null) {
-        // !inner para que PostgREST aplique el filtro de ciudad como WHERE
-        data = await _db
-            .from('matches')
-            .select(
-              'id, porcentaje, estado, usuario_match_id, '
-              'otro_usuario:usuario_match_id!inner(id, nombre, foto, whatsapp)',
-            )
-            .eq('usuario_id', userId)
-            .eq('estado', 'activo')
-            .eq('otro_usuario.ciudad_activa', ciudadActiva)
-            .order('porcentaje', ascending: false)
-            .limit(50);
+        try {
+          // Requiere columna ciudad_activa en usuarios (ALTER TABLE de TAREA 1)
+          data = await _db
+              .from('matches')
+              .select(
+                'id, porcentaje, estado, usuario_match_id, '
+                'otro_usuario:usuario_match_id!inner(id, nombre, foto, whatsapp)',
+              )
+              .eq('usuario_id', userId)
+              .eq('estado', 'activo')
+              .eq('otro_usuario.ciudad_activa', ciudadActiva)
+              .order('porcentaje', ascending: false)
+              .limit(50);
+        } catch (_) {
+          // Fallback: columna ciudad_activa todavía no existe en Supabase
+          debugPrint('[Repe] getMatches: filtro ciudad_activa no disponible, retornando todos');
+          data = await baseQuery();
+        }
       } else {
-        data = await _db
-            .from('matches')
-            .select(
-              'id, porcentaje, estado, usuario_match_id, '
-              'otro_usuario:usuario_match_id(id, nombre, foto, whatsapp)',
-            )
-            .eq('usuario_id', userId)
-            .eq('estado', 'activo')
-            .order('porcentaje', ascending: false)
-            .limit(50);
+        data = await baseQuery();
       }
 
       return data
