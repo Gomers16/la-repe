@@ -11,8 +11,8 @@ ALTER TABLE ciudades ADD COLUMN IF NOT EXISTS lat decimal(10,7);
 ALTER TABLE ciudades ADD COLUMN IF NOT EXISTS lng decimal(10,7);
 
 -- PASO 2: Constraint única para ON CONFLICT
-ALTER TABLE ciudades
-  ADD CONSTRAINT IF NOT EXISTS ciudades_pais_nombre_uq UNIQUE (pais_id, nombre);
+ALTER TABLE ciudades DROP CONSTRAINT IF EXISTS ciudades_pais_nombre_uq;
+ALTER TABLE ciudades ADD CONSTRAINT ciudades_pais_nombre_uq UNIQUE (pais_id, nombre);
 
 -- PASO 3: Insertar ciudades (ON CONFLICT actualiza lat/lng de las ya existentes)
 -- pais_id 1 = Colombia | pais_id 9 = México
