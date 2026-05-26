@@ -308,11 +308,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   _QuickButton(
-                    icon: Icons.camera_alt_outlined,
-                    label: 'Escanear',
-                    onTap: () => _showFutureFeatureDialog(context, 'Escanear con Cámara'),
-                  ),
-                  _QuickButton(
                     icon: Icons.search,
                     label: 'Buscar',
                     onTap: () => _navigateToTab(context, 1),
@@ -488,26 +483,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showFutureFeatureDialog(BuildContext context, String feature) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(feature),
-        content: const Text(
-          'Esta funcionalidad estará disponible en la próxima versión. ¡Mantente atento!',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Entendido',
-                style: TextStyle(color: AppTheme.primaryGold)),
           ),
         ],
       ),
