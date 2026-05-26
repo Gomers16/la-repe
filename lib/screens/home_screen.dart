@@ -20,11 +20,7 @@ class _HomeScreenState extends State<HomeScreen> {
   int? _totalFiguritas;
   int? _supaMatchCount;
   String _ciudadActiva = '';
-
-  static const _cities = [
-    'Ibagué', 'Bogotá', 'Cali', 'Medellín',
-    'Barranquilla', 'Cartagena', 'Bucaramanga', 'Otra ciudad',
-  ];
+  int _paisSeleccionado = 1; // 1 = Colombia, 9 = México
 
   @override
   void initState() {
@@ -82,56 +78,18 @@ class _HomeScreenState extends State<HomeScreen> {
   void _showCitySelector(BuildContext context, String currentCity) {
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       backgroundColor: AppTheme.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (_) => Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            margin: const EdgeInsets.only(top: 12, bottom: 4),
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: Colors.white24,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          const Padding(
-            padding: EdgeInsets.fromLTRB(20, 12, 20, 4),
-            child: Text(
-              '¿Dónde querés intercambiar hoy?',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-          ),
-          ..._cities.map((city) => ListTile(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-                leading: Icon(
-                  currentCity == city
-                      ? Icons.location_on_rounded
-                      : Icons.location_city_outlined,
-                  size: 20,
-                  color: currentCity == city ? AppTheme.primaryGold : Colors.white38,
-                ),
-                title: Text(
-                  city,
-                  style: TextStyle(
-                    color: currentCity == city ? AppTheme.primaryGold : Colors.white70,
-                    fontWeight: currentCity == city ? FontWeight.bold : FontWeight.normal,
-                  ),
-                ),
-                trailing: currentCity == city
-                    ? const Icon(Icons.check_rounded,
-                        color: AppTheme.primaryGold, size: 18)
-                    : null,
-                onTap: () {
-                  Navigator.pop(context);
-                  _setCiudadActiva(city);
-                },
-              )),
-          const SizedBox(height: 24),
-        ],
+      builder: (_) => _CitySelectorSheet(
+        paisId: _paisSeleccionado,
+        onCitySelected: (nombre) {
+          Navigator.pop(context);
+          _setCiudadActiva(nombre);
+        },
+        onPaisChanged: (paisId) => setState(() => _paisSeleccionado = paisId),
       ),
     );
   }
@@ -858,6 +816,253 @@ class _QuickButton extends StatelessWidget {
                   fontSize: 13,
                   fontWeight: FontWeight.bold,
                   color: Colors.white60,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Selector de ciudad con buscador y tabs de país
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _CitySelectorSheet extends StatefulWidget {
+  final int paisId;
+  final void Function(String) onCitySelected;
+  final void Function(int) onPaisChanged;
+
+  const _CitySelectorSheet({
+    required this.paisId,
+    required this.onCitySelected,
+    required this.onPaisChanged,
+  });
+
+  @override
+  State<_CitySelectorSheet> createState() => _CitySelectorSheetState();
+}
+
+class _CitySelectorSheetState extends State<_CitySelectorSheet> {
+  final TextEditingController _search = TextEditingController();
+  List<Map<String, dynamic>> _ciudades = [];
+  List<Map<String, dynamic>> _filtered = [];
+  int _selectedPais = 1;
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedPais = widget.paisId;
+    _loadCiudades();
+  }
+
+  @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadCiudades() async {
+    setState(() { _loading = true; _search.clear(); });
+    try {
+      final data = await SupabaseService.getCiudades(paisId: _selectedPais);
+      if (mounted) {
+        setState(() {
+          _ciudades = data;
+          _filtered = data;
+          _loading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  void _switchPais(int paisId) {
+    widget.onPaisChanged(paisId);
+    setState(() => _selectedPais = paisId);
+    _loadCiudades();
+  }
+
+  void _onSearch(String query) {
+    setState(() {
+      _filtered = query.isEmpty
+          ? _ciudades
+          : _ciudades
+              .where((c) => c['nombre']
+                  .toString()
+                  .toLowerCase()
+                  .contains(query.toLowerCase()))
+              .toList();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Handle
+          Container(
+            margin: const EdgeInsets.only(top: 12, bottom: 4),
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: Colors.white24,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+
+          // Título
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+            child: Text(
+              '¿Dónde querés intercambiar hoy?',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+          ),
+
+          // Tabs de país
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+            child: Row(
+              children: [
+                _PaisTab(
+                  flag: '🇨🇴',
+                  label: 'Colombia',
+                  selected: _selectedPais == 1,
+                  onTap: () => _switchPais(1),
+                ),
+                const SizedBox(width: 12),
+                _PaisTab(
+                  flag: '🇲🇽',
+                  label: 'México',
+                  selected: _selectedPais == 9,
+                  onTap: () => _switchPais(9),
+                ),
+              ],
+            ),
+          ),
+
+          // Buscador
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+            child: TextField(
+              controller: _search,
+              onChanged: _onSearch,
+              autofocus: true,
+              style: const TextStyle(color: Colors.white),
+              decoration: InputDecoration(
+                hintText: 'Buscar ciudad...',
+                hintStyle: const TextStyle(color: Colors.white38),
+                prefixIcon: const Icon(Icons.search_rounded, color: Colors.white38),
+                filled: true,
+                fillColor: AppTheme.surfaceLight,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+            ),
+          ),
+
+          // Lista
+          if (_loading)
+            const Padding(
+              padding: EdgeInsets.all(24),
+              child: CircularProgressIndicator(color: AppTheme.primaryGold),
+            )
+          else
+            SizedBox(
+              height: 300,
+              child: _filtered.isEmpty
+                  ? const Center(
+                      child: Text(
+                        'Sin resultados',
+                        style: TextStyle(color: Colors.white38),
+                      ),
+                    )
+                  : ListView.builder(
+                      itemCount: _filtered.length,
+                      itemBuilder: (context, i) {
+                        final city = _filtered[i];
+                        return ListTile(
+                          dense: true,
+                          leading: const Icon(
+                            Icons.location_city_outlined,
+                            size: 18,
+                            color: Colors.white38,
+                          ),
+                          title: Text(
+                            city['nombre'] as String,
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              fontSize: 14,
+                            ),
+                          ),
+                          onTap: () =>
+                              widget.onCitySelected(city['nombre'] as String),
+                        );
+                      },
+                    ),
+            ),
+
+          const SizedBox(height: 16),
+        ],
+      ),
+    );
+  }
+}
+
+class _PaisTab extends StatelessWidget {
+  final String flag;
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _PaisTab({
+    required this.flag,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          decoration: BoxDecoration(
+            color: selected
+                ? AppTheme.primaryGold.withValues(alpha: 0.2)
+                : AppTheme.surfaceLight,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: selected ? AppTheme.primaryGold : Colors.transparent,
+            ),
+          ),
+          child: Column(
+            children: [
+              Text(flag, style: const TextStyle(fontSize: 24)),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: selected ? AppTheme.primaryGold : Colors.white70,
+                  fontWeight:
+                      selected ? FontWeight.bold : FontWeight.normal,
                 ),
               ),
             ],

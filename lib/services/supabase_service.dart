@@ -256,6 +256,21 @@ class SupabaseService {
     }
   }
 
+  static Future<List<Map<String, dynamic>>> getCiudades({
+    required int paisId,
+  }) async {
+    try {
+      final data = await _db
+          .from('ciudades')
+          .select('id, nombre')
+          .eq('pais_id', paisId)
+          .order('nombre');
+      return (data as List).cast<Map<String, dynamic>>();
+    } catch (e) {
+      throw parseSupabaseError(e);
+    }
+  }
+
   static Future<ConfigUsuario?> getConfigUsuario(String userId) async {
     try {
       final data = await _db
