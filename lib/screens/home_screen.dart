@@ -349,20 +349,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: SportCard(
-                      accentColor: AppTheme.eventGreen,
-                      onTap: () => _showEventsDialog(context),
-                      padding: const EdgeInsets.fromLTRB(18, 16, 12, 16),
-                      child: const _ActionCardContent(
-                        title: 'Eventos Locales',
-                        icon: Icons.map_outlined,
-                        color: AppTheme.eventGreen,
-                        badge: '2 cerca',
-                      ),
-                    ),
-                  ),
                 ],
               ),
               const SizedBox(height: 26),
@@ -555,74 +541,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _showEventsDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppTheme.surface,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-          side: const BorderSide(color: Colors.white10),
-        ),
-        title: const Row(
-          children: [
-            Icon(Icons.location_on, color: AppTheme.eventGreen),
-            SizedBox(width: 8),
-            Text('Cambiatones en Ibagué'),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _buildEventItem(
-              title: 'Cambiatón Multicentro',
-              detail: 'Domingo 3:00 PM · Pasillo Principal',
-              distance: 'A 1.2 km de ti',
-            ),
-            const Divider(color: Colors.white10),
-            _buildEventItem(
-              title: 'Reunión de Coleccionistas La Estación',
-              detail: 'Sábado 4:00 PM · Plazoleta de Comidas',
-              distance: 'A 2.5 km de ti',
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cerrar', style: TextStyle(color: AppTheme.primaryGold)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildEventItem({
-    required String title,
-    required String detail,
-    required String distance,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(title,
-              style: const TextStyle(
-                  fontWeight: FontWeight.bold, fontSize: 15, color: Colors.white)),
-          const SizedBox(height: 4),
-          Text(detail, style: const TextStyle(fontSize: 13, color: Colors.white70)),
-          const SizedBox(height: 2),
-          Text(distance,
-              style: const TextStyle(
-                fontSize: 12,
-                color: AppTheme.primaryGold,
-                fontWeight: FontWeight.bold,
-              )),
-        ],
-      ),
-    );
-  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
