@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:la_repe/screens/main_layout.dart';
+import 'package:la_repe/screens/onboarding_screen.dart';
 import 'package:la_repe/services/supabase_service.dart';
 import 'package:la_repe/services/whatsapp_service.dart';
 import 'package:la_repe/state/album_state.dart';
@@ -25,7 +26,33 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _loadCiudadActiva().then((_) => _loadSupabaseData());
+    _loadCiudadActiva().then((_) {
+      _loadSupabaseData();
+      _checkOnboarding();
+    });
+  }
+
+  Future<void> _checkOnboarding() async {
+    final prefs = await SharedPreferences.getInstance();
+    final done = prefs.getBool('onboarding_completado') ?? false;
+    if (!done && mounted) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _showOnboarding());
+    }
+  }
+
+  void _showOnboarding() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: Colors.black87,
+      builder: (_) => OnboardingScreen(
+        onCompleted: () async {
+          Navigator.pop(context);
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setBool('onboarding_completado', true);
+        },
+      ),
+    );
   }
 
   Future<void> _loadCiudadActiva() async {
@@ -144,28 +171,41 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ],
                   ),
-                  // Avatar perfil
-                  GestureDetector(
-                    onTap: () => _navigateToTab(context, 4),
-                    child: Container(
-                      padding: const EdgeInsets.all(3),
-                      decoration: const BoxDecoration(
-                        gradient: AppTheme.goldGradient,
-                        shape: BoxShape.circle,
+                  // Botones de acción: ayuda + avatar perfil
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(
+                          Icons.help_outline_rounded,
+                          color: Colors.white54,
+                          size: 22,
+                        ),
+                        tooltip: 'Ayuda',
+                        onPressed: _showOnboarding,
                       ),
-                      child: CircleAvatar(
-                        radius: 21,
-                        backgroundColor: AppTheme.surfaceLight,
-                        child: Text(
-                          _initials(userName),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
+                      GestureDetector(
+                        onTap: () => _navigateToTab(context, 4),
+                        child: Container(
+                          padding: const EdgeInsets.all(3),
+                          decoration: const BoxDecoration(
+                            gradient: AppTheme.goldGradient,
+                            shape: BoxShape.circle,
+                          ),
+                          child: CircleAvatar(
+                            radius: 21,
+                            backgroundColor: AppTheme.surfaceLight,
+                            child: Text(
+                              _initials(userName),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                            ),
                           ),
                         ),
                       ),
-                    ),
+                    ],
                   ),
                 ],
               ),
