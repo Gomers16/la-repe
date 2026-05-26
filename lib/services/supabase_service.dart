@@ -238,15 +238,17 @@ class SupabaseService {
     String? whatsapp,
     int? ciudadId,
     int? paisId,
+    String? ciudadActiva,
   }) async {
     try {
       final updates = <String, dynamic>{};
-      if (nombre != null)    updates['nombre']     = nombre;
-      if (foto != null)      updates['foto']        = foto;
-      if (whatsapp != null)  updates['whatsapp']    = whatsapp;
-      if (ciudadId != null)  updates['ciudad_id']   = ciudadId;
-      if (paisId != null)    updates['pais_id']     = paisId;
-      if (updates.isEmpty)   return;
+      if (nombre != null)       updates['nombre']        = nombre;
+      if (foto != null)         updates['foto']           = foto;
+      if (whatsapp != null)     updates['whatsapp']       = whatsapp;
+      if (ciudadId != null)     updates['ciudad_id']      = ciudadId;
+      if (paisId != null)       updates['pais_id']        = paisId;
+      if (ciudadActiva != null) updates['ciudad_activa']  = ciudadActiva;
+      if (updates.isEmpty)      return;
 
       await _db.from('usuarios').update(updates).eq('id', userId);
     } catch (e) {
@@ -497,21 +499,41 @@ class SupabaseService {
   // ═══════════════════════════════════════════════════════════════════════════
 
   /// Devuelve los matches del usuario ordenados por porcentaje de compatibilidad.
-  /// Incluye el perfil del otro usuario vía FK hint en PostgREST.
-  static Future<List<MatchConDetalle>> getMatches(String userId) async {
+  /// Si [ciudadActiva] no es null, filtra matches cuyo otro usuario esté en esa ciudad.
+  /// Requiere que la columna ciudad_activa exista en la tabla usuarios (migración TAREA 1).
+  static Future<List<MatchConDetalle>> getMatches(
+    String userId, {
+    String? ciudadActiva,
+  }) async {
     try {
-      final data = await _db
-          .from('matches')
-          .select(
-            'id, porcentaje, estado, usuario_match_id, '
-            'otro_usuario:usuario_match_id(id, nombre, foto, whatsapp)',
-          )
-          .eq('usuario_id', userId)
-          .eq('estado', 'activo')
-          .order('porcentaje', ascending: false)
-          .limit(50);
+      final List data;
+      if (ciudadActiva != null) {
+        // !inner para que PostgREST aplique el filtro de ciudad como WHERE
+        data = await _db
+            .from('matches')
+            .select(
+              'id, porcentaje, estado, usuario_match_id, '
+              'otro_usuario:usuario_match_id!inner(id, nombre, foto, whatsapp)',
+            )
+            .eq('usuario_id', userId)
+            .eq('estado', 'activo')
+            .eq('otro_usuario.ciudad_activa', ciudadActiva)
+            .order('porcentaje', ascending: false)
+            .limit(50);
+      } else {
+        data = await _db
+            .from('matches')
+            .select(
+              'id, porcentaje, estado, usuario_match_id, '
+              'otro_usuario:usuario_match_id(id, nombre, foto, whatsapp)',
+            )
+            .eq('usuario_id', userId)
+            .eq('estado', 'activo')
+            .order('porcentaje', ascending: false)
+            .limit(50);
+      }
 
-      return (data as List)
+      return data
           .map((row) => MatchConDetalle.fromJson(row as Map<String, dynamic>))
           .toList();
     } catch (e) {

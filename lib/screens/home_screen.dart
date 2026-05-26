@@ -7,6 +7,7 @@ import 'package:la_repe/models/models.dart';
 import 'package:la_repe/theme/app_assets.dart';
 import 'package:la_repe/theme/app_logo.dart';
 import 'package:la_repe/theme/theme.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -18,29 +19,121 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int? _totalFiguritas;
   int? _supaMatchCount;
+  String _ciudadActiva = '';
+
+  static const _cities = [
+    'Ibagué', 'Bogotá', 'Cali', 'Medellín',
+    'Barranquilla', 'Cartagena', 'Bucaramanga', 'Otra ciudad',
+  ];
 
   @override
   void initState() {
     super.initState();
-    _loadSupabaseData();
+    _loadCiudadActiva().then((_) => _loadSupabaseData());
+  }
+
+  Future<void> _loadCiudadActiva() async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getString('ciudad_activa');
+    if (saved != null && mounted) setState(() => _ciudadActiva = saved);
   }
 
   Future<void> _loadSupabaseData() async {
     final userId = SupabaseService.currentUserId;
     if (userId == null) return;
+    final ciudad = _ciudadActiva.isNotEmpty ? _ciudadActiva : null;
     try {
       final results = await Future.wait([
         SupabaseService.getResumenColeccion(userId, 1),
-        SupabaseService.getMatches(userId),
+        SupabaseService.getMatches(userId, ciudadActiva: ciudad),
       ]);
       if (!mounted) return;
-      final resumen  = results[0] as Map<String, int>;
-      final matches  = results[1] as List<MatchConDetalle>;
+      final resumen = results[0] as Map<String, int>;
+      final matches = results[1] as List<MatchConDetalle>;
       setState(() {
         _totalFiguritas = resumen['total'];
         _supaMatchCount = matches.length;
       });
     } catch (_) {}
+  }
+
+  Future<void> _setCiudadActiva(String ciudad) async {
+    setState(() => _ciudadActiva = ciudad);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('ciudad_activa', ciudad);
+    final userId = SupabaseService.currentUserId;
+    if (userId != null) {
+      SupabaseService.updateUsuario(userId: userId, ciudadActiva: ciudad)
+          .catchError((_) {});
+    }
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Buscando intercambios en $ciudad'),
+          backgroundColor: AppTheme.surface,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      );
+    }
+    _loadSupabaseData();
+  }
+
+  void _showCitySelector(BuildContext context, String currentCity) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppTheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            margin: const EdgeInsets.only(top: 12, bottom: 4),
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: Colors.white24,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const Padding(
+            padding: EdgeInsets.fromLTRB(20, 12, 20, 4),
+            child: Text(
+              '¿Dónde querés intercambiar hoy?',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+          ),
+          ..._cities.map((city) => ListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+                leading: Icon(
+                  currentCity == city
+                      ? Icons.location_on_rounded
+                      : Icons.location_city_outlined,
+                  size: 20,
+                  color: currentCity == city ? AppTheme.primaryGold : Colors.white38,
+                ),
+                title: Text(
+                  city,
+                  style: TextStyle(
+                    color: currentCity == city ? AppTheme.primaryGold : Colors.white70,
+                    fontWeight: currentCity == city ? FontWeight.bold : FontWeight.normal,
+                  ),
+                ),
+                trailing: currentCity == city
+                    ? const Icon(Icons.check_rounded,
+                        color: AppTheme.primaryGold, size: 18)
+                    : null,
+                onTap: () {
+                  Navigator.pop(context);
+                  _setCiudadActiva(city);
+                },
+              )),
+          const SizedBox(height: 24),
+        ],
+      ),
+    );
   }
 
   void _navigateToTab(BuildContext context, int tabIndex) {
@@ -61,6 +154,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final albumTotal   = _totalFiguritas ?? 980;
 
     final topMatch = state.activeMatches.isNotEmpty ? state.activeMatches.first : null;
+    final effectiveCity = _ciudadActiva.isNotEmpty ? _ciudadActiva : (user?.city ?? 'Ibagué');
 
     return Scaffold(
       body: SafeArea(
@@ -117,10 +211,24 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 6),
-              const Text(
-                '¿Qué vamos a intercambiar hoy?',
-                style: TextStyle(fontSize: 13, color: Colors.white38),
+              const SizedBox(height: 8),
+              GestureDetector(
+                onTap: () => _showCitySelector(context, effectiveCity),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.location_on_rounded,
+                        size: 14, color: AppTheme.primaryGold),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Intercambiando en: $effectiveCity',
+                      style: const TextStyle(fontSize: 13, color: Colors.white54),
+                    ),
+                    const SizedBox(width: 2),
+                    const Icon(Icons.keyboard_arrow_down_rounded,
+                        size: 16, color: Colors.white38),
+                  ],
+                ),
               ),
               const SizedBox(height: 22),
 

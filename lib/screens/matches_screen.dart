@@ -5,6 +5,7 @@ import 'package:la_repe/services/whatsapp_service.dart';
 import 'package:la_repe/state/album_state.dart';
 import 'package:la_repe/theme/theme.dart';
 import 'package:la_repe/utils/supabase_errors.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MatchesScreen extends StatefulWidget {
   const MatchesScreen({super.key});
@@ -17,20 +18,28 @@ class _MatchesScreenState extends State<MatchesScreen> {
   List<MatchConDetalle>? _supaMatches;
   bool _loadingSupabase = false;
   String? _error;
+  String _ciudadActiva = '';
 
   @override
   void initState() {
     super.initState();
-    _loadSupabaseMatches();
+    _loadCiudadActiva().then((_) => _loadSupabaseMatches());
+  }
+
+  Future<void> _loadCiudadActiva() async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getString('ciudad_activa');
+    if (saved != null && mounted) setState(() => _ciudadActiva = saved);
   }
 
   Future<void> _loadSupabaseMatches() async {
     final userId = SupabaseService.currentUserId;
-    if (userId == null) return; // sin sesión, usamos datos locales
+    if (userId == null) return;
 
     setState(() { _loadingSupabase = true; _error = null; });
     try {
-      final matches = await SupabaseService.getMatches(userId);
+      final ciudad = _ciudadActiva.isNotEmpty ? _ciudadActiva : null;
+      final matches = await SupabaseService.getMatches(userId, ciudadActiva: ciudad);
       if (mounted) setState(() => _supaMatches = matches);
     } on AppException catch (e) {
       if (mounted) setState(() => _error = e.message);
@@ -73,7 +82,7 @@ class _MatchesScreenState extends State<MatchesScreen> {
               const SizedBox(height: 6),
               Text(
                 hasSupabase
-                    ? 'Usuarios con los que podés intercambiar figuritas directamente.'
+                    ? 'Intercambios disponibles en ${_ciudadActiva.isNotEmpty ? _ciudadActiva : 'tu ciudad'}.'
                     : 'Usuarios cercanos con los que puedes cambiar repetidas directamente.',
                 style: const TextStyle(fontSize: 13, color: Colors.white38),
               ),
