@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:la_repe/screens/main_layout.dart';
 import 'package:la_repe/services/supabase_service.dart';
 import 'package:la_repe/state/album_state.dart';
+import 'package:la_repe/theme/app_logo.dart';
 import 'package:la_repe/theme/theme.dart';
 import 'package:la_repe/utils/supabase_errors.dart';
 
@@ -90,9 +91,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
+      body: StadiumBackground(
+        overlayOpacity: 0.78,
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
           child: Form(
             key: _formKey,
             child: Column(
@@ -257,6 +260,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ),
           ),
         ),
+      ),
       ),
     );
   }

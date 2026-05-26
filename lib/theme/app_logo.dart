@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:la_repe/theme/app_assets.dart';
 import 'package:la_repe/theme/theme.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -151,83 +152,31 @@ class RepeBadge extends StatelessWidget {
 // ─────────────────────────────────────────────────────────────────────────────
 class StadiumBackground extends StatelessWidget {
   final Widget child;
+  final double overlayOpacity;
 
-  const StadiumBackground({super.key, required this.child});
+  const StadiumBackground({
+    super.key,
+    required this.child,
+    this.overlayOpacity = 0.75,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Stack(
       fit: StackFit.expand,
       children: [
-        const DecoratedBox(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                Color(0xFF0B0F19),
-                Color(0xFF0C1320),
-                Color(0xFF0A1018),
-                Color(0xFF0B0F19),
-              ],
-              stops: [0.0, 0.35, 0.65, 1.0],
-            ),
+        Positioned.fill(
+          child: Image.asset(AppAssets.backgroundStadium, fit: BoxFit.cover),
+        ),
+        Positioned.fill(
+          child: Container(
+            color: Colors.black.withValues(alpha: overlayOpacity),
           ),
         ),
-        CustomPaint(painter: _FieldLinesPainter()),
         child,
       ],
     );
   }
-}
-
-class _FieldLinesPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = const Color(0x08FFFFFF) // white ~3 %
-      ..strokeWidth = 1.0
-      ..style = PaintingStyle.stroke;
-
-    final fillPaint = Paint()
-      ..color = const Color(0x0CFFFFFF) // white ~5 %
-      ..style = PaintingStyle.fill;
-
-    final cx = size.width / 2;
-    final cy = size.height / 2;
-
-    // Línea de medio campo
-    canvas.drawLine(Offset(0, cy), Offset(size.width, cy), paint);
-
-    // Círculo central
-    canvas.drawCircle(Offset(cx, cy), size.width * 0.28, paint);
-    canvas.drawCircle(Offset(cx, cy), 5, fillPaint);
-
-    // Área grande arriba
-    final aW = size.width * 0.58;
-    final aH = size.height * 0.17;
-    canvas.drawRect(Rect.fromLTWH((size.width - aW) / 2, 0, aW, aH), paint);
-
-    // Área grande abajo
-    canvas.drawRect(
-        Rect.fromLTWH((size.width - aW) / 2, size.height - aH, aW, aH), paint);
-
-    // Área pequeña arriba
-    final sW = size.width * 0.30;
-    final sH = size.height * 0.08;
-    canvas.drawRect(Rect.fromLTWH((size.width - sW) / 2, 0, sW, sH), paint);
-
-    // Área pequeña abajo
-    canvas.drawRect(
-        Rect.fromLTWH((size.width - sW) / 2, size.height - sH, sW, sH), paint);
-
-    // Puntos penales
-    canvas.drawCircle(Offset(cx, aH * 0.65), 4, fillPaint);
-    canvas.drawCircle(Offset(cx, size.height - aH * 0.65), 4, fillPaint);
-  }
-
-  @override
-  bool shouldRepaint(_FieldLinesPainter old) => false;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

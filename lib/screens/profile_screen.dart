@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:la_repe/screens/login_options_screen.dart';
 import 'package:la_repe/services/supabase_service.dart';
 import 'package:la_repe/state/album_state.dart';
+import 'package:la_repe/theme/app_logo.dart';
 import 'package:la_repe/theme/theme.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -111,10 +112,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
       appBar: AppBar(
         title: const Text('Mi Perfil'),
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.all(20.0),
+      body: StadiumBackground(
+        child: SafeArea(
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.all(20.0),
           child: Column(
             children: [
               const SizedBox(height: 12),
@@ -266,6 +268,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ],
           ),
         ),
+      ),
       ),
     );
   }

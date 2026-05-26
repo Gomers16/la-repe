@@ -5,6 +5,7 @@ import 'package:la_repe/services/whatsapp_service.dart';
 import 'package:la_repe/state/album_state.dart';
 import 'package:la_repe/theme/theme.dart';
 import 'package:la_repe/utils/supabase_errors.dart';
+import 'package:la_repe/theme/app_logo.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class MatchesScreen extends StatefulWidget {
@@ -65,11 +66,12 @@ class _MatchesScreenState extends State<MatchesScreen> {
           ),
         ],
       ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+      body: StadiumBackground(
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
                 '⚡ Matches Compatibles',
@@ -105,6 +107,7 @@ class _MatchesScreenState extends State<MatchesScreen> {
             ],
           ),
         ),
+      ),
       ),
     );
   }

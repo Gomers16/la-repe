@@ -5,6 +5,7 @@ import 'package:la_repe/services/supabase_service.dart';
 import 'package:la_repe/state/album_state.dart';
 import 'package:la_repe/theme/theme.dart';
 import 'package:la_repe/utils/supabase_errors.dart';
+import 'package:la_repe/theme/app_logo.dart';
 
 class ProfileCompletionScreen extends StatefulWidget {
   final bool isGoogle;
@@ -107,9 +108,10 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
   Widget build(BuildContext context) {
     if (_isLoading) {
       return Scaffold(
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 40.0),
+        body: StadiumBackground(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 40.0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -165,6 +167,7 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
             ),
           ),
         ),
+        ),
       );
     }
 
@@ -176,9 +179,10 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
+      body: StadiumBackground(
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24.0),
           child: Form(
             key: _formKey,
             child: Column(
@@ -320,6 +324,7 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
             ),
           ),
         ),
+      ),
       ),
     );
   }

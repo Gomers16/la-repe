@@ -3,6 +3,7 @@ import 'package:la_repe/models/models.dart';
 import 'package:la_repe/services/supabase_service.dart';
 import 'package:la_repe/state/album_state.dart';
 import 'package:la_repe/theme/theme.dart';
+import 'package:la_repe/theme/app_logo.dart';
 
 class CollectionScreen extends StatefulWidget {
   const CollectionScreen({super.key});
@@ -82,11 +83,12 @@ class _CollectionScreenState extends State<CollectionScreen> {
           ),
         ],
       ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            Container(
-              color: AppTheme.surface,
+      body: StadiumBackground(
+        child: SafeArea(
+          child: Column(
+            children: [
+              Container(
+                color: AppTheme.surface,
               padding: const EdgeInsets.symmetric(vertical: 10),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -344,6 +346,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
             ),
           ],
         ),
+      ),
       ),
     );
   }
